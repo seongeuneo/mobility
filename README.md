@@ -1,4 +1,4 @@
-# SH 모빌리티 프론트엔드
+# 모빌리티 프론트엔드
 
 정적 웹사이트 + PWA (manifest.json, service worker 포함)
 
