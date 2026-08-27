@@ -1724,67 +1724,11 @@
         .getElementById("themeToggleMobile")
         .addEventListener("click", toggleTheme);
 
-      // ---------- data ----------
-      const CARS = [
-        { name: "기아 레이", type: "경차", cat: "경차", price: "297,000" },
-        { name: "현대 캐스퍼", type: "경차", cat: "경차", price: "312,000" },
-        {
-          name: "기아 쏘렌토 하이브리드",
-          type: "중형 SUV",
-          cat: "SUV",
-          price: "589,000",
-        },
-        {
-          name: "현대 싼타페 하이브리드",
-          type: "중형 SUV",
-          cat: "SUV",
-          price: "612,000",
-        },
-        {
-          name: "현대 아이오닉5",
-          type: "전기 SUV",
-          cat: "전기차",
-          price: "498,000",
-        },
-        { name: "기아 EV6", type: "전기 SUV", cat: "전기차", price: "523,000" },
-        {
-          name: "현대 그랜저 하이브리드",
-          type: "준대형 세단",
-          cat: "세단",
-          price: "558,000",
-        },
-        {
-          name: "기아 K5 하이브리드",
-          type: "준중형 세단",
-          cat: "세단",
-          price: "421,000",
-        },
-        {
-          name: "토요타 캠리 하이브리드",
-          type: "준대형 세단",
-          cat: "하이브리드",
-          price: "642,000",
-        },
-        {
-          name: "BMW 3시리즈",
-          type: "수입 세단",
-          cat: "수입차",
-          price: "798,000",
-        },
-        {
-          name: "벤츠 E클래스",
-          type: "수입 세단",
-          cat: "수입차",
-          price: "912,000",
-        },
-        {
-          name: "기아 니로 하이브리드",
-          type: "소형 SUV",
-          cat: "하이브리드",
-          price: "389,000",
-        },
-      ];
-      CARS.forEach((c) => (c.tabCat = c.cat === "세단" ? "세단" : c.cat)); // keep explicit
+      // ---------- data (loaded from data.json) ----------
+      let CARS = [];
+      let INSIGHTS = [];
+      let ODO_SAMPLES = [];
+      let odoIdx = 0;
 
       const heroCatMap = {
         전기차: "전기차",
@@ -1811,25 +1755,24 @@
         const grid = document.getElementById("carGrid");
         grid.innerHTML = "";
         CARS.forEach((c, i) => {
-          const show = filter === "전체" || c.cat === filter;
+          const show = filter === "전체" || c.category === filter;
           const el = document.createElement("div");
           el.className = "car-card" + (show ? " show" : "");
           el.style.cursor = 'pointer';
           el.innerHTML = `
-      <div class="car-art">${carSvg(i)}<span class="car-tag">${c.cat}</span></div>
+      <div class="car-art">${carSvg(i)}<span class="car-tag">${c.category}</span></div>
       <div class="car-body">
         <h4>${c.name}</h4>
         <div class="type">${c.type}</div>
-        <div class="car-price"><b>${c.price}</b><span>원 / 월~</span></div>
+        <div class="car-price"><b>${c.price.toLocaleString("ko-KR")}</b><span>원 / 월~</span></div>
       </div>`;
             el.addEventListener('click', ()=>{
-            const url = 'estimate.html?car=' + encodeURIComponent(c.name) + '&type=' + encodeURIComponent(c.cat);
+            const url = 'estimate.html?car=' + encodeURIComponent(c.name) + '&type=' + encodeURIComponent(c.category) + '&price=' + encodeURIComponent(c.price);
             location.href = url;
           });
           grid.appendChild(el);
         });
       }
-      renderCars("전체");
 
       document.getElementById("carTabs").addEventListener("click", (e) => {
         const btn = e.target.closest(".tab");
@@ -1866,65 +1809,17 @@
       });
 
       // ---------- insight ----------
-      const INSIGHTS = [
-        {
-          cat: "기본상식",
-          label: "렌트·리스 기본상식",
-          title: "설레는 첫차 구매, 걱정되는 첫차 보험료",
-        },
-        {
-          cat: "계약 A to Z",
-          label: "계약 A to Z",
-          title: "주행거리 선택 가이드, 얼마나 잡아야 할까?",
-        },
-        {
-          cat: "기본상식",
-          label: "렌트·리스 기본상식",
-          title: "높아지는 차값, 부담을 낮추는 해법은?",
-        },
-        {
-          cat: "기본상식",
-          label: "렌트·리스 기본상식",
-          title: "렌트, 신용관리에 유리한 이유",
-        },
-        {
-          cat: "기본상식",
-          label: "렌트·리스 기본상식",
-          title: "리스 계약 시 질권설정, 왜 필수일까요?",
-        },
-        {
-          cat: "기본상식",
-          label: "렌트·리스 기본상식",
-          title: "자동차 사고가 났을 때, 가장 먼저 해야 할 일",
-        },
-        {
-          cat: "계약 A to Z",
-          label: "계약 A to Z",
-          title: "장기렌트 차량 반납, 추가 비용 발생할까?",
-        },
-        {
-          cat: "계약 A to Z",
-          label: "계약 A to Z",
-          title: "차량 인수 전, 필수 체크리스트",
-        },
-        {
-          cat: "기본상식",
-          label: "렌트·리스 기본상식",
-          title: "장기렌트 vs 리스, 현명한 선택을 위한 비교",
-        },
-      ];
       function renderInsights(filter) {
         const grid = document.getElementById("insightGrid");
         grid.innerHTML = "";
         INSIGHTS.forEach((it) => {
-          const show = filter === "전체" || it.cat === filter;
+          const show = filter === "전체" || it.category === filter;
           const el = document.createElement("div");
           el.className = "insight-card" + (show ? " show" : "");
-          el.innerHTML = `<div class="insight-cat">${it.label}</div><h4>${it.title}</h4>`;
+          el.innerHTML = `<div class="insight-cat">${it.categoryLabel}</div><h4>${it.title}</h4>`;
           grid.appendChild(el);
         });
       }
-      renderInsights("전체");
       document.getElementById("insightTabs").addEventListener("click", (e) => {
         const btn = e.target.closest(".tab");
         if (!btn) return;
@@ -1935,90 +1830,50 @@
         renderInsights(btn.dataset.cat);
       });
 
-      // ---------- process ----------
-      const STEPS = [
-        {
-          t: "원하는 차량 고르기",
-          d: "경차부터 수입차까지 136개 차종을 실시간으로 비교하고, 월납금을 바로 확인해요.",
-        },
-        {
-          t: "무료 견적 리포트 신청",
-          d: "이름과 연락처만 입력하면 끝. 접수되면 담당자가 배정돼요. 구매 확정 전이어도 부담 없이 신청하세요.",
-        },
-        {
-          t: "전문가 상담",
-          d: "영업일 기준 1~2일 내 연락드려요. 수수료 없는 제로커미션 구조라 누구에게나 같은 조건의 견적을 드려요.",
-        },
-        {
-          t: "심사 및 서류 제출",
-          d: "운전면허증은 필수예요. 소득 유형(근로/사업/법인)에 따라 필요한 서류가 조금씩 달라요.",
-        },
-        {
-          t: "전자약정",
-          d: "금융사 앱에서 간편 서명해요. 차량 정보·월납금·계약 조건을 꼼꼼히 확인하세요.",
-        },
-        {
-          t: "선납금·보증금 입금",
-          d: "금융사 담당자의 최종 확인 전화 후 입금해요. 선납금 0%를 선택했다면 이 단계는 생략돼요.",
-        },
-        {
-          t: "용품 작업",
-          d: "블랙박스·썬팅 등 용품 작업이 진행돼요. 보통 3~5일 소요돼요.",
-        },
-        {
-          t: "내 차 도착!",
-          d: "탁송사가 원하는 장소로 차량을 배달해드려요. 인수 후 금융사의 최종 확인 전화가 와요.",
-        },
-      ];
-      document.getElementById("processList").innerHTML = STEPS.map(
-        (s, i) => `
-  <div class="process-item">
-    <div class="process-num">${String(i + 1).padStart(2, "0")}</div>
-    <div class="process-body"><h4>${s.t}</h4><p>${s.d}</p></div>
-  </div>`,
-      ).join("");
-
-      // ---------- history ----------
-      const HISTORY = [
-        { y: "2011", t: "장기렌트 사업부 합류", m: false },
-        { y: "2012", t: "현대캐피탈 · 하나캐피탈 공식 협약 체결", m: false },
-        { y: "2013", t: "장기렌트 사업부 연간 목표 180% 달성", m: false },
-        { y: "2015", t: "수도권 장기렌트 판매왕 수상", m: false },
-        { y: "2016", t: "현민 모빌리티 설립, 독립 직판 구조 구축", m: true },
-        { y: "2018", t: "전국 화물 장기렌트 누적 계약 1,000건 돌파", m: false },
-        { y: "2024", t: "22개 캐피탈사 다중 금융 비교 시스템 구축", m: true },
-        { y: "2025", t: "AI 견적 챗봇 출시, 디지털 전환 가속화", m: false },
-        {
-          y: "2026",
-          t: "화물 전용 리스 플랫폼 오픈, 수수료 0원 직판 서비스 론칭",
-          m: true,
-        },
-      ];
-      document.getElementById("historyTrack").innerHTML = HISTORY.map(
-        (h) => `
-  <div class="history-item${h.m ? " milestone" : ""}"><div class="history-year">${h.y}</div><p>${h.t}</p></div>`,
-      ).join("");
-
       // ---------- odometer demo ----------
-      const ODO_SAMPLES = [
-        { name: "기아 레이 · 5년 · 연 12,000km", v: 438000 },
-        { name: "현대 아이오닉5 · 4년 · 연 15,000km", v: 521000 },
-        { name: "기아 쏘렌토 하이브리드 · 5년 · 연 12,000km", v: 589000 },
-        { name: "BMW 3시리즈 · 3년 · 연 10,000km", v: 798000 },
-      ];
-      let odoIdx = 0;
       function tickOdometer() {
         odoIdx = (odoIdx + 1) % ODO_SAMPLES.length;
         const s = ODO_SAMPLES[odoIdx];
         const el = document.getElementById("odoValue");
         el.style.opacity = 0;
         setTimeout(() => {
-          el.textContent = s.v.toLocaleString("ko-KR");
-          document.getElementById("odoCarName").textContent = s.name + " 기준";
+          el.textContent = s.value.toLocaleString("ko-KR");
+          document.getElementById("odoCarName").textContent = s.label + " 기준";
           el.style.opacity = 1;
         }, 220);
       }
-      setInterval(tickOdometer, 3600);
+
+      // ---------- load demo data ----------
+      fetch("./data.json")
+        .then((r) => r.json())
+        .then((data) => {
+          CARS = data.cars;
+          INSIGHTS = data.insights;
+          ODO_SAMPLES = data.odometerSamples;
+
+          renderCars("전체");
+          renderInsights("전체");
+
+          document.getElementById("processList").innerHTML = data.processSteps
+            .map(
+              (s, i) => `
+  <div class="process-item">
+    <div class="process-num">${String(i + 1).padStart(2, "0")}</div>
+    <div class="process-body"><h4>${s.title}</h4><p>${s.description}</p></div>
+  </div>`,
+            )
+            .join("");
+
+          document.getElementById("historyTrack").innerHTML = data.history
+            .map(
+              (h) => `
+  <div class="history-item${h.milestone ? " milestone" : ""}"><div class="history-year">${h.year}</div><p>${h.text}</p></div>`,
+            )
+            .join("");
+
+          setInterval(tickOdometer, 3600);
+        })
+        .catch((err) => console.error("데이터 로드 실패:", err));
 
       // ---------- quote form ----------
       // TODO: emailjs.com 가입 후 Service/Template/Public Key 발급받아 채워넣기

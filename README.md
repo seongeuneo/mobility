@@ -3,7 +3,7 @@
 정적 웹사이트 + PWA (manifest.json, service worker 포함)
 
 ## 로컬에서 열어보기
-`index.html`을 브라우저로 바로 열거나, 간단한 로컬 서버로 실행하세요:
+차량/인사이트 등 데이터를 `data.json`에서 `fetch`로 불러오기 때문에, `index.html`을 더블클릭해서(`file://`) 여는 방식은 브라우저 보안 정책(CORS)에 막혀 데이터가 비어 보일 수 있습니다. 반드시 로컬 서버로 실행하세요:
 ```
 npx serve .
 ```

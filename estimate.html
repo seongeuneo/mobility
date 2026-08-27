@@ -1,0 +1,1725 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>레이 견적 계산 | SH 모빌리티</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#FFFFFF" id="themeColorMeta" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="SH모빌리티" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="icon" href="icons/icon-192.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* ===== LIGHT THEME (default) ===== */
+        --bg-0: #ffffff;
+        --bg-1: #f3f5f7;
+        --bg-2: #ffffff;
+        --line: #e3e7ec;
+        --text-0: #14171c;
+        --text-1: #4b5563;
+        --text-2: #8a93a3;
+        --amber: #ffb020;
+        --amber-text: #b4650a;
+        --amber-dim: #e4b368;
+        --teal: #4fd1c5;
+        --teal-text: #0f8f82;
+        --danger: #e5484d;
+        --header-bg: rgba(255, 255, 255, 0.82);
+        --mobile-bar-bg: rgba(255, 255, 255, 0.92);
+        --grid-line: rgba(20, 23, 28, 0.05);
+        --glow-amber: rgba(255, 176, 32, 0.1);
+        --glow-teal: rgba(79, 209, 197, 0.07);
+        --shadow-lg: 0 24px 48px -16px rgba(20, 23, 28, 0.14);
+        --shadow-chat: 0 24px 48px rgba(20, 23, 28, 0.18);
+        --notice-bg: linear-gradient(
+          90deg,
+          rgba(217, 45, 32, 0.07),
+          rgba(217, 45, 32, 0.02)
+        );
+        --notice-border: rgba(217, 45, 32, 0.18);
+        --notice-text: #8a2c22;
+        --radius: 14px;
+        --display: "Big Shoulders Display", sans-serif;
+        --body:
+          "Pretendard Variable", "Pretendard", "Space Grotesk", -apple-system,
+          BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+      }
+      html[data-theme="dark"] {
+        /* ===== DARK THEME ===== */
+        --bg-0: #0f1217;
+        --bg-1: #171b22;
+        --bg-2: #1f2530;
+        --line: #2b323f;
+        --text-0: #f4f6f8;
+        --text-1: #b7bfcb;
+        --text-2: #7c8494;
+        --amber: #ffb020;
+        --amber-text: #ffb020;
+        --amber-dim: #8a611f;
+        --teal: #4fd1c5;
+        --teal-text: #4fd1c5;
+        --danger: #ff6b5e;
+        --header-bg: rgba(15, 18, 23, 0.86);
+        --mobile-bar-bg: rgba(23, 27, 34, 0.94);
+        --grid-line: rgba(255, 255, 255, 0.025);
+        --glow-amber: rgba(255, 176, 32, 0.16);
+        --glow-teal: rgba(79, 209, 197, 0.1);
+        --shadow-lg: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+        --shadow-chat: 0 30px 60px rgba(0, 0, 0, 0.5);
+        --notice-bg: linear-gradient(
+          90deg,
+          rgba(255, 107, 94, 0.14),
+          rgba(255, 107, 94, 0.04)
+        );
+        --notice-border: rgba(255, 107, 94, 0.25);
+        --notice-text: #e7c4bf;
+      }
+      html {
+        transition: background-color 0.25s ease;
+      }
+      body {
+        transition:
+          background-color 0.25s ease,
+          color 0.25s ease;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--bg-0);
+        color: var(--text-0);
+        font-family: var(--body);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+      img {
+        max-width: 100%;
+        display: block;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      ::selection {
+        background: var(--amber);
+        color: #14171c;
+      }
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 2px solid var(--amber);
+        outline-offset: 2px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      /* ===== header (shared) ===== */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--header-bg);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 68px;
+        gap: 14px;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: 0.02em;
+        margin-right: auto;
+      }
+      .logo .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        background: var(--amber);
+        box-shadow: 0 0 12px var(--amber);
+      }
+      .nav-links {
+        display: flex;
+        gap: 32px;
+        font-size: 14.5px;
+        color: var(--text-1);
+        margin-right: 8px;
+      }
+      .nav-links a:hover {
+        color: var(--text-0);
+      }
+      .nav-cta {
+        background: var(--amber);
+        color: #171308;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: none;
+        transition:
+          transform 0.15s,
+          box-shadow 0.2s;
+      }
+      .nav-cta:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(255, 176, 32, 0.28);
+      }
+      .burger {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--text-0);
+        font-size: 22px;
+      }
+      .theme-toggle {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 auto;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--bg-1);
+        color: var(--text-1);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          border-color 0.2s,
+          transform 0.15s;
+      }
+      .theme-toggle:hover {
+        border-color: var(--text-2);
+        transform: translateY(-1px);
+      }
+      .drawer .theme-toggle {
+        width: auto;
+        height: auto;
+        gap: 8px;
+        padding: 12px;
+        font-size: 14.5px;
+        font-weight: 600;
+        color: var(--text-0);
+        margin-top: 14px;
+      }
+      @media (max-width: 860px) {
+        .nav-links {
+          display: none;
+        }
+        .burger {
+          display: block;
+        }
+        .nav-cta {
+          display: none;
+        }
+      }
+
+      .drawer-scrim {
+        position: fixed;
+        inset: 0;
+        background: rgba(6, 7, 9, 0.6);
+        backdrop-filter: blur(2px);
+        z-index: 70;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+      .drawer-scrim.show {
+        display: block;
+      }
+      .drawer-scrim.in {
+        opacity: 1;
+      }
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 78%;
+        max-width: 320px;
+        z-index: 71;
+        background: var(--bg-1);
+        border-left: 1px solid var(--line);
+        transform: translateX(100%);
+        transition: transform 0.28s ease;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        padding-top: calc(20px + env(safe-area-inset-top));
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      }
+      .drawer.open {
+        transform: translateX(0);
+      }
+      .drawer-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+      .drawer-head button {
+        background: none;
+        border: none;
+        color: var(--text-1);
+        font-size: 20px;
+      }
+      .drawer nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .drawer nav a {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--text-0);
+        padding: 15px 6px;
+        border-bottom: 1px solid var(--line);
+      }
+      .drawer .btn-primary {
+        margin-top: 24px;
+        text-align: center;
+      }
+
+      .mobile-bar {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 55;
+        background: var(--mobile-bar-bg);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid var(--line);
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        gap: 10px;
+        align-items: center;
+      }
+      @media (max-width: 860px) {
+        .mobile-bar {
+          display: flex;
+        }
+        body {
+          padding-bottom: 74px;
+        }
+      }
+      .mobile-bar .call {
+        flex: 0 0 auto;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--bg-2);
+        border: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        color: var(--text-0);
+      }
+      .mobile-bar .cta {
+        flex: 1;
+        background: var(--amber);
+        color: #171308;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        text-align: center;
+      }
+
+      .btn-primary {
+        background: var(--amber);
+        color: #171308;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 14px 24px;
+        border-radius: 10px;
+        border: none;
+        transition:
+          transform 0.15s,
+          box-shadow 0.2s;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(255, 176, 32, 0.25);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-0);
+        font-weight: 600;
+        font-size: 15px;
+        padding: 14px 22px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .btn-ghost:hover {
+        border-color: var(--text-2);
+        background: var(--bg-1);
+      }
+
+      /* ===== breadcrumb ===== */
+      .crumb {
+        padding: 18px 0;
+        font-size: 13.5px;
+        color: var(--text-2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .crumb a:hover {
+        color: var(--text-0);
+      }
+      .crumb .sep {
+        opacity: 0.5;
+      }
+      .crumb .cur {
+        color: var(--text-0);
+        font-weight: 600;
+      }
+
+      /* ===== car header ===== */
+      .car-head {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+        align-items: center;
+        padding: 20px 0 40px;
+      }
+      @media (max-width: 860px) {
+        .car-head {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+      }
+      .car-visual {
+        background: linear-gradient(160deg, var(--bg-2), var(--bg-1));
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 220px;
+      }
+      .car-visual svg {
+        width: 80%;
+        max-width: 360px;
+      }
+      .car-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .car-type-tag {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--amber-text);
+        background: rgba(255, 176, 32, 0.12);
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+      .car-name {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: clamp(28px, 4vw, 40px);
+        margin-top: 10px;
+        color: var(--text-0);
+      }
+      .car-desc {
+        color: var(--text-2);
+        font-size: 14.5px;
+        margin-top: 8px;
+        max-width: 420px;
+      }
+
+      .trim-select {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      .trim-select:hover {
+        border-color: var(--text-2);
+      }
+      .trim-select .label {
+        font-size: 12.5px;
+        color: var(--text-2);
+      }
+      .trim-select .value {
+        font-size: 15.5px;
+        font-weight: 700;
+        margin-top: 2px;
+        color: var(--text-0);
+      }
+      .trim-select .chev {
+        color: var(--text-2);
+        font-size: 14px;
+      }
+
+      /* ===== calculator card ===== */
+      .calc-wrap {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 20px;
+        padding-bottom: 70px;
+      }
+      @media (max-width: 940px) {
+        .calc-wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .calc-card {
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 28px;
+      }
+      .calc-card + .calc-card {
+        margin-top: 16px;
+      }
+      .calc-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--text-0);
+        margin-bottom: 14px;
+      }
+      .calc-label .q {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid var(--text-2);
+        color: var(--text-2);
+        font-size: 10.5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      .price-hero {
+        background: linear-gradient(160deg, var(--bg-2), var(--bg-1));
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: var(--shadow-lg);
+      }
+      .price-hero .tag {
+        font-size: 12.5px;
+        color: var(--text-2);
+      }
+      .price-hero .price {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: clamp(38px, 5.5vw, 52px);
+        color: var(--text-0);
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .price-hero .price span.num {
+        color: var(--amber-text);
+        text-shadow: 0 0 24px rgba(255, 176, 32, 0.3);
+      }
+      .price-hero .price span.unit {
+        font-size: 18px;
+        color: var(--text-2);
+        font-family: var(--body);
+        font-weight: 600;
+      }
+      .price-hero .note {
+        font-size: 12.5px;
+        color: var(--text-2);
+        margin-top: 6px;
+      }
+
+      /* ===== sticky price bar (top placement) ===== */
+      .price-sticky {
+        position: sticky;
+        top: 68px;
+        z-index: 40;
+        margin-bottom: 28px;
+      }
+      .price-sticky-inner {
+        background: linear-gradient(160deg, var(--bg-2), var(--bg-1));
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 22px 26px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .price-sticky .tag {
+        font-size: 12.5px;
+        color: var(--text-2);
+      }
+      .price-sticky .price {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: clamp(30px, 4.5vw, 42px);
+        color: var(--text-0);
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .price-sticky .price span.num {
+        color: var(--amber-text);
+        text-shadow: 0 0 24px rgba(255, 176, 32, 0.3);
+      }
+      .price-sticky .price span.unit {
+        font-size: 16px;
+        color: var(--text-2);
+        font-family: var(--body);
+        font-weight: 600;
+      }
+      .price-sticky .note {
+        font-size: 12.5px;
+        color: var(--text-2);
+        margin-top: 4px;
+      }
+      .price-sticky-cta {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+      @media (max-width: 640px) {
+        .price-sticky-inner {
+          padding: 18px 20px;
+          border-radius: 16px;
+        }
+        .price-sticky-cta {
+          width: 100%;
+        }
+      }
+      .cta-card p {
+        line-height: 1.5;
+      }
+
+      .seg-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .seg {
+        flex: 1;
+        min-width: 70px;
+        text-align: center;
+        padding: 11px 10px;
+        border-radius: 10px;
+        background: var(--bg-0);
+        border: 1px solid var(--line);
+        font-size: 13.5px;
+        color: var(--text-1);
+        transition: 0.15s;
+      }
+      .seg.active {
+        background: var(--amber);
+        border-color: var(--amber);
+        color: #171308;
+        font-weight: 700;
+      }
+
+      .slider-row {
+        margin-top: 4px;
+      }
+      .slider-val {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13.5px;
+        color: var(--text-0);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .slider-val span {
+        color: var(--amber-text);
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 99px;
+        background: var(--line);
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--amber);
+        border: 3px solid var(--bg-0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--amber);
+        border: 3px solid var(--bg-0);
+        cursor: pointer;
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 520px) {
+        .product-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .product-card {
+        background: var(--bg-0);
+        border: 2px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .product-card.active {
+        border-color: var(--amber);
+        background: rgba(255, 176, 32, 0.06);
+      }
+      .product-card h4 {
+        font-size: 15.5px;
+        color: var(--text-0);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .product-card .radio {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--text-2);
+        flex: 0 0 auto;
+        position: relative;
+      }
+      .product-card.active .radio {
+        border-color: var(--amber);
+      }
+      .product-card.active .radio::after {
+        content: "";
+        position: absolute;
+        inset: 2px;
+        border-radius: 50%;
+        background: var(--amber);
+      }
+      .product-card ul {
+        list-style: none;
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .product-card li {
+        font-size: 12.5px;
+        color: var(--text-2);
+        padding-left: 14px;
+        position: relative;
+      }
+      .product-card li::before {
+        content: "·";
+        position: absolute;
+        left: 2px;
+        color: var(--text-2);
+      }
+
+      /* tip banner */
+      .tip-banner {
+        background: linear-gradient(
+          120deg,
+          rgba(255, 176, 32, 0.1),
+          rgba(79, 209, 197, 0.06)
+        );
+        border: 1px solid rgba(255, 176, 32, 0.25);
+        border-radius: 18px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .tip-banner .icon {
+        font-size: 26px;
+      }
+      .tip-banner h4 {
+        font-size: 15.5px;
+        color: var(--text-0);
+      }
+      .tip-banner p {
+        font-size: 13px;
+        color: var(--text-2);
+        margin-top: 4px;
+        max-width: 360px;
+      }
+
+      /* ===== modal ===== */
+      .modal-scrim {
+        position: fixed;
+        inset: 0;
+        background: rgba(6, 7, 9, 0.55);
+        backdrop-filter: blur(3px);
+        z-index: 90;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .modal-scrim.show {
+        display: flex;
+      }
+      @media (min-width: 640px) {
+        .modal-scrim {
+          align-items: center;
+        }
+      }
+      .modal-card {
+        background: var(--bg-1);
+        border: 1px solid var(--line);
+        border-top-left-radius: 22px;
+        border-top-right-radius: 22px;
+        width: 100%;
+        max-width: 440px;
+        padding: 26px 24px calc(26px + env(safe-area-inset-bottom));
+        box-shadow: var(--shadow-lg);
+        animation: slideUp 0.25s ease;
+      }
+      @media (min-width: 640px) {
+        .modal-card {
+          border-radius: 22px;
+        }
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+      .modal-head button {
+        background: none;
+        border: none;
+        color: var(--text-2);
+        font-size: 18px;
+      }
+      .modal-title {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 21px;
+        color: var(--text-0);
+        line-height: 1.3;
+      }
+      .modal-sub {
+        font-size: 13px;
+        color: var(--text-2);
+        margin-top: 8px;
+      }
+      .field {
+        margin-top: 16px;
+      }
+      .field label {
+        display: block;
+        font-size: 13px;
+        color: var(--text-2);
+        margin-bottom: 7px;
+      }
+      .field input {
+        width: 100%;
+        background: var(--bg-0);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 13px 14px;
+        color: var(--text-0);
+        font-size: 14.5px;
+      }
+      .field input:focus {
+        border-color: var(--amber);
+      }
+      .radio-row {
+        display: flex;
+        gap: 10px;
+      }
+      .radio-row label {
+        flex: 1;
+        text-align: center;
+        font-size: 13.5px;
+        padding: 11px;
+        border-radius: 9px;
+        border: 1px solid var(--line);
+        background: var(--bg-0);
+        color: var(--text-1);
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .radio-row input {
+        display: none;
+      }
+      .radio-row label:has(input:checked) {
+        background: var(--amber);
+        border-color: var(--amber);
+        color: #14171c;
+        font-weight: 700;
+      }
+      .modal-submit {
+        width: 100%;
+        margin-top: 20px;
+        background: var(--amber);
+        color: #171308;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 15px;
+        border-radius: 10px;
+        border: none;
+      }
+      .modal-link {
+        display: block;
+        text-align: center;
+        margin-top: 14px;
+        font-size: 13.5px;
+        color: var(--text-2);
+        text-decoration: underline;
+      }
+
+      .confirm-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+      }
+      .confirm-row:last-child {
+        border-bottom: none;
+      }
+      .confirm-row .k {
+        color: var(--text-2);
+      }
+      .confirm-row .v {
+        color: var(--text-0);
+        font-weight: 700;
+      }
+      .confirm-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .confirm-actions .btn-ghost,
+      .confirm-actions .modal-submit {
+        margin-top: 0;
+        flex: 1;
+      }
+
+      .success-box {
+        text-align: center;
+        padding: 10px 0 4px;
+      }
+      .success-box .check {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(79, 209, 197, 0.12);
+        border: 1px solid var(--teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 18px;
+        font-size: 26px;
+        color: var(--teal-text);
+      }
+      .success-box h3 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 20px;
+        color: var(--text-0);
+      }
+      .success-box p {
+        font-size: 13.5px;
+        color: var(--text-2);
+        margin-top: 10px;
+        line-height: 1.6;
+      }
+
+      /* trim sheet */
+      .trim-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 4px;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+      }
+      .trim-option:last-child {
+        border-bottom: none;
+      }
+      .trim-option .name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-0);
+      }
+      .trim-option .price {
+        font-size: 13px;
+        color: var(--text-2);
+        margin-top: 2px;
+      }
+      .trim-option.selected .name {
+        color: var(--amber-text);
+      }
+
+      /* chat widget */
+      .chat-fab {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 60;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: var(--amber);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 10px 26px rgba(255, 176, 32, 0.35);
+        transition: transform 0.2s;
+      }
+      .chat-fab:hover {
+        transform: scale(1.06);
+      }
+      @media (max-width: 860px) {
+        .chat-fab {
+          bottom: calc(84px + env(safe-area-inset-bottom));
+        }
+      }
+
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 44px 0 40px;
+        background: var(--bg-0);
+      }
+      .footer-info {
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.9;
+      }
+
+      .fade-up {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .fade-up.in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 640px) {
+        .wrap {
+          padding: 0 18px;
+        }
+        .calc-card {
+          padding: 20px;
+        }
+        .price-hero {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <div class="logo"><span class="dot"></span>SH 모빌리티</div>
+        <nav class="nav-links">
+          <a href="index.html#home">홈</a>
+          <a href="index.html#cars">차량찾기</a>
+          <a href="index.html#insight">인사이트</a>
+          <a href="index.html#history">회사소개</a>
+        </nav>
+        <button
+          class="theme-toggle"
+          id="themeToggleDesktop"
+          aria-label="다크 모드 전환"
+        >
+          🌙
+        </button>
+        <button class="nav-cta" id="openQuoteTop">무료 견적받기</button>
+        <button class="burger" id="burgerBtn" aria-label="메뉴 열기">☰</button>
+      </div>
+    </header>
+
+    <div class="drawer-scrim" id="drawerScrim"></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-head">
+        <div class="logo" style="font-size: 18px">
+          <span class="dot"></span>SH 모빌리티
+        </div>
+        <button id="drawerClose" aria-label="메뉴 닫기">✕</button>
+      </div>
+      <nav>
+        <a href="index.html#home">홈</a>
+        <a href="index.html#cars">차량찾기</a>
+        <a href="index.html#insight">인사이트</a>
+        <a href="index.html#history">회사소개</a>
+      </nav>
+      <button
+        class="theme-toggle"
+        id="themeToggleMobile"
+        style="
+          display: flex;
+          width: 100%;
+          justify-content: flex-start;
+          gap: 10px;
+        "
+        aria-label="다크 모드 전환"
+      >
+        🌙 <span>다크 모드</span>
+      </button>
+      <button class="btn-primary" id="openQuoteDrawer">무료 견적받기</button>
+    </div>
+
+    <main class="wrap">
+      <div class="crumb">
+        <a href="index.html#cars">차량찾기</a><span class="sep">›</span
+        ><span class="cur" id="crumbCar">레이</span>
+      </div>
+
+      <div class="car-head">
+        <div class="car-visual fade-up" id="carVisual"></div>
+        <div>
+          <div class="car-title-row">
+            <span class="car-type-tag" id="carTag">경차</span>
+          </div>
+          <h1 class="car-name" id="carName">기아 레이</h1>
+          <p class="car-desc" id="carDesc">
+            국내 최강 실내공간을 자랑하는 박스카. 첫차·세컨카로 가장 인기 있는
+            선택이에요.
+          </p>
+          <div class="trim-select" id="trimSelectBtn">
+            <div>
+              <div class="label">트림</div>
+              <div class="value" id="trimValue">트림을 선택하세요</div>
+            </div>
+            <span class="chev">▾</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="price-sticky fade-up" id="priceSticky">
+        <div class="price-sticky-inner">
+          <div>
+            <div class="tag">15개사 견적 중 최저가</div>
+            <div class="price">
+              <span class="num" id="finalPrice">297,000</span
+              ><span class="unit">원 / 월</span>
+            </div>
+            <div class="note" id="priceNote">
+              기아 레이 · 60개월 · 연 1.2만km · 장기렌트 기준
+            </div>
+          </div>
+          <button class="btn-primary price-sticky-cta" id="openQuoteMain">
+            무료 견적 리포트 받기
+          </button>
+        </div>
+      </div>
+
+      <div class="calc-wrap">
+        <div>
+          <div class="calc-card fade-up">
+            <div class="calc-label">계약기간 <span class="q">?</span></div>
+            <div class="seg-row" id="durationRow">
+              <button class="seg" data-v="36">36개월</button>
+              <button class="seg" data-v="48">48개월</button>
+              <button class="seg active" data-v="60">60개월</button>
+            </div>
+          </div>
+
+          <div class="calc-card fade-up">
+            <div class="calc-label">선납금 <span class="q">?</span></div>
+            <div class="slider-row">
+              <div class="slider-val">
+                <span id="prepayPct">0%</span><span id="prepayWon">0만원</span>
+              </div>
+              <input
+                type="range"
+                id="prepaySlider"
+                min="0"
+                max="30"
+                step="5"
+                value="0"
+              />
+            </div>
+          </div>
+
+          <div class="calc-card fade-up">
+            <div class="calc-label">연간 주행거리 <span class="q">?</span></div>
+            <div class="seg-row" id="mileageRow">
+              <button class="seg" data-v="10000">1만km</button>
+              <button class="seg active" data-v="12000">1.2만km</button>
+              <button class="seg" data-v="15000">1.5만km</button>
+              <button class="seg" data-v="20000">2만km</button>
+            </div>
+          </div>
+
+          <div class="calc-card fade-up">
+            <div class="calc-label">이용상품 <span class="q">?</span></div>
+            <div class="product-grid" id="productGrid">
+              <div class="product-card active" data-v="rent">
+                <h4><span class="radio"></span>장기렌트</h4>
+                <ul>
+                  <li>보험, 자동차세 포함</li>
+                  <li>신용영향 없음</li>
+                  <li>하·허·호 번호판</li>
+                </ul>
+              </div>
+              <div class="product-card" data-v="lease">
+                <h4><span class="radio"></span>리스</h4>
+                <ul>
+                  <li>보험, 자동차세 미포함</li>
+                  <li>신용영향 있음</li>
+                  <li>일반 번호판</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="calc-card fade-up cta-card">
+            <div class="calc-label" style="margin-bottom: 10px">
+              준비되셨나요?
+            </div>
+            <p
+              style="font-size: 13px; color: var(--text-2); margin-bottom: 16px"
+            >
+              위 조건으로 무료 견적 리포트를 받아보세요. 옵션별 정확한 금액까지
+              확인할 수 있어요.
+            </p>
+            <button class="btn-primary" style="width: 100%" id="openQuoteSide">
+              무료 견적 리포트 받기
+            </button>
+            <button
+              class="btn-ghost"
+              style="width: 100%; margin-top: 10px; text-align: center"
+              onclick="location.href = 'index.html#cars'"
+            >
+              다른 차량 둘러보기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip-banner fade-up" style="margin-bottom: 70px">
+        <div style="display: flex; gap: 14px; align-items: flex-start">
+          <span class="icon">💡</span>
+          <div>
+            <h4>옵션 추가하면 월 납입금이 얼마나 달라질까요?</h4>
+            <p>
+              선루프·후측방 충돌감지 등 옵션별 금액 차이를 무료 견적 리포트로
+              확인해보세요.
+            </p>
+          </div>
+        </div>
+        <button class="btn-primary" id="openQuoteTip">
+          무료 견적 리포트 받기
+        </button>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <div class="logo" style="font-size: 18px; margin-bottom: 16px">
+          <span class="dot"></span>SH 모빌리티
+        </div>
+        <div class="footer-info">
+          상호 : 에스에이치모빌리티 · 대표자 : 정세형 · 사업자등록번호 :
+          794-23-02422<br />
+          대표번호 : 0504-443-2753 · 하나캐피탈 공식 파트너<br />
+          이메일 : wjdtpgud1@naver.com · 주소 : 대구광역시 북구 침산남로19길 6,
+          B동 401-4호
+        </div>
+      </div>
+    </footer>
+
+    <div class="mobile-bar">
+      <a class="call" href="tel:0504-443-2753" aria-label="전화 걸기">📞</a>
+      <button class="cta" id="openQuoteBar">무료 견적 받기</button>
+    </div>
+    <button class="chat-fab" id="chatFab">🤖</button>
+
+    <!-- Trim bottom sheet -->
+    <div class="modal-scrim" id="trimScrim">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-title">트림 선택</div>
+          <button id="trimClose">✕</button>
+        </div>
+        <div id="trimList"></div>
+      </div>
+    </div>
+
+    <!-- Quote modal: step 1 form -->
+    <div class="modal-scrim" id="quoteScrim">
+      <div class="modal-card">
+        <div id="quoteStepForm">
+          <div class="modal-head">
+            <div>
+              <div class="modal-title">견적 분석 신청</div>
+              <div class="modal-sub">
+                먼저, 견적 분석을 위해 꼭 필요한 정보만 확인할게요.<br />안심하세요!
+                절대 영업 행위를 하지 않아요.
+              </div>
+            </div>
+            <button id="quoteClose1">✕</button>
+          </div>
+          <div class="field">
+            <label>이름</label
+            ><input type="text" id="qName" placeholder="홍길동" />
+          </div>
+          <div class="field">
+            <label>법인 고객이신가요?</label>
+            <div class="radio-row">
+              <label
+                ><input type="radio" name="qBiz" checked /><span
+                  >개인</span
+                ></label
+              >
+              <label><input type="radio" name="qBiz" /><span>법인</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label>휴대폰번호 ('-' 없이 입력)</label
+            ><input type="tel" id="qPhone" placeholder="01012345678" />
+          </div>
+          <button class="modal-submit" id="quoteToConfirm">
+            견적 신청하기
+          </button>
+        </div>
+
+        <div id="quoteStepConfirm" style="display: none">
+          <div class="modal-head">
+            <div class="modal-title">입력 정보 확인</div>
+            <button id="quoteClose2">✕</button>
+          </div>
+          <div class="modal-sub" style="margin-bottom: 14px">
+            아래 정보로 상담을 신청할게요. 맞으신가요?
+          </div>
+          <div class="confirm-row">
+            <span class="k">성함</span><span class="v" id="confirmName">-</span>
+          </div>
+          <div class="confirm-row">
+            <span class="k">연락처</span
+            ><span class="v" id="confirmPhone">-</span>
+          </div>
+          <div class="confirm-actions">
+            <button class="btn-ghost" id="quoteBackToForm">다시 입력</button>
+            <button class="modal-submit" id="quoteSubmitFinal">
+              네, 맞습니다
+            </button>
+          </div>
+        </div>
+
+        <div id="quoteStepSuccess" style="display: none">
+          <div class="modal-head">
+            <span></span><button id="quoteClose3">✕</button>
+          </div>
+          <div class="success-box">
+            <div class="check">✓</div>
+            <h3>신청 완료!</h3>
+            <p>
+              담당자가 배정되어 곧 연락드릴게요.<br />평일 10시~19시 · 평균
+              1시간 이내<br />주말·공휴일 문의는 다음 평일에 순차 연락드립니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---------- theme ----------
+      function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        try {
+          localStorage.setItem("sh-theme", theme);
+        } catch (e) {}
+        const icon = theme === "dark" ? "☀️" : "🌙";
+        const dTog = document.getElementById("themeToggleDesktop");
+        const mTog = document.getElementById("themeToggleMobile");
+        if (dTog) dTog.textContent = icon;
+        if (mTog)
+          mTog.innerHTML =
+            icon +
+            " <span>" +
+            (theme === "dark" ? "라이트 모드" : "다크 모드") +
+            "</span>";
+        const meta = document.getElementById("themeColorMeta");
+        if (meta)
+          meta.setAttribute(
+            "content",
+            theme === "dark" ? "#0F1217" : "#FFFFFF",
+          );
+      }
+      let savedTheme = "light";
+      try {
+        savedTheme = localStorage.getItem("sh-theme") || "light";
+      } catch (e) {}
+      applyTheme(savedTheme);
+      function toggleTheme() {
+        const cur =
+          document.documentElement.getAttribute("data-theme") || "light";
+        applyTheme(cur === "dark" ? "light" : "dark");
+      }
+      document
+        .getElementById("themeToggleDesktop")
+        .addEventListener("click", toggleTheme);
+      document
+        .getElementById("themeToggleMobile")
+        .addEventListener("click", toggleTheme);
+
+      // ---------- drawer ----------
+      const drawer = document.getElementById("drawer");
+      const scrim = document.getElementById("drawerScrim");
+      function openDrawer() {
+        scrim.classList.add("show");
+        requestAnimationFrame(() => scrim.classList.add("in"));
+        drawer.classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+      function closeDrawer() {
+        scrim.classList.remove("in");
+        drawer.classList.remove("open");
+        document.body.style.overflow = "";
+        setTimeout(() => scrim.classList.remove("show"), 250);
+      }
+      document
+        .getElementById("burgerBtn")
+        .addEventListener("click", openDrawer);
+      document
+        .getElementById("drawerClose")
+        .addEventListener("click", closeDrawer);
+      scrim.addEventListener("click", closeDrawer);
+
+      // ---------- service worker ----------
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch(() => {});
+        });
+      }
+
+      // ---------- car svg ----------
+      function carSvg(hex) {
+        return `<svg viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="72" rx="88" ry="8" fill="black" opacity="0.25"/>
+    <path d="M20 58 Q28 30 60 28 L84 16 Q100 10 118 16 L146 28 Q172 30 180 58 Z" fill="${hex}" opacity="0.92"/>
+    <rect x="15" y="55" width="170" height="14" rx="7" fill="${hex}"/>
+    <circle cx="50" cy="70" r="12" fill="#0F1217" stroke="#3a4150" stroke-width="3"/>
+    <circle cx="150" cy="70" r="12" fill="#0F1217" stroke="#3a4150" stroke-width="3"/>
+    <path d="M66 30 L92 20 L110 20 L134 30 Z" fill="#0F1217" opacity="0.5"/>
+  </svg>`;
+      }
+      document.getElementById("carVisual").innerHTML = carSvg("#FFB020");
+
+      // ---------- data (query params allow linking from a car card) ----------
+      const params = new URLSearchParams(location.search);
+      const carName = params.get("car") || "기아 레이";
+      const carTagText = params.get("type") || "경차";
+      const urlPrice = Number(params.get("price")) || 0;
+      document.getElementById("carName").textContent = carName;
+      document.getElementById("carTag").textContent = carTagText;
+      document.getElementById("crumbCar").textContent = carName.replace(
+        /^(기아|현대|토요타|BMW|벤츠)\s*/,
+        "",
+      );
+      document.title = carName + " 견적 계산 | SH 모빌리티";
+
+      let TRIMS = [];
+      let state = {
+        trim: null,
+        duration: 60,
+        mileage: 12000,
+        prepay: 0,
+        product: "rent",
+      };
+
+      function renderTrimList() {
+        const list = document.getElementById("trimList");
+        list.innerHTML = TRIMS.map(
+          (t, i) => `
+    <div class="trim-option${state.trim === i ? " selected" : ""}" data-i="${i}">
+      <div><div class="name">${t.name}</div><div class="price">월 ${t.base.toLocaleString("ko-KR")}원~</div></div>
+      <span style="color:var(--amber-text); opacity:${state.trim === i ? 1 : 0};">✓</span>
+    </div>`,
+        ).join("");
+        list.querySelectorAll(".trim-option").forEach((el) => {
+          el.addEventListener("click", () => {
+            state.trim = parseInt(el.dataset.i);
+            document.getElementById("trimValue").textContent =
+              TRIMS[state.trim].name;
+            renderTrimList();
+            calc();
+            closeModal("trimScrim");
+          });
+        });
+      }
+
+      document
+        .getElementById("trimSelectBtn")
+        .addEventListener("click", () => openModal("trimScrim"));
+      document
+        .getElementById("trimClose")
+        .addEventListener("click", () => closeModal("trimScrim"));
+
+      // ---------- segmented controls ----------
+      function wireSeg(rowId, key, parseNum) {
+        document.getElementById(rowId).addEventListener("click", (e) => {
+          const btn = e.target.closest(".seg");
+          if (!btn) return;
+          document
+            .querySelectorAll("#" + rowId + " .seg")
+            .forEach((s) => s.classList.remove("active"));
+          btn.classList.add("active");
+          state[key] = parseNum ? Number(btn.dataset.v) : btn.dataset.v;
+          calc();
+        });
+      }
+      wireSeg("durationRow", "duration", true);
+      wireSeg("mileageRow", "mileage", true);
+
+      document.getElementById("productGrid").addEventListener("click", (e) => {
+        const card = e.target.closest(".product-card");
+        if (!card) return;
+        document
+          .querySelectorAll(".product-card")
+          .forEach((c) => c.classList.remove("active"));
+        card.classList.add("active");
+        state.product = card.dataset.v;
+        calc();
+      });
+
+      const prepaySlider = document.getElementById("prepaySlider");
+      prepaySlider.addEventListener("input", () => {
+        state.prepay = Number(prepaySlider.value);
+        document.getElementById("prepayPct").textContent = state.prepay + "%";
+        const wonAmt = Math.round((19_900_000 * state.prepay) / 100 / 10000);
+        document.getElementById("prepayWon").textContent =
+          wonAmt.toLocaleString("ko-KR") + "만원";
+        calc();
+      });
+
+      // ---------- calculation ----------
+      function calc() {
+        const trimIdx = state.trim === null ? 1 : state.trim; // default 에센셜
+        const base = TRIMS[trimIdx].base;
+        const durMult = { 36: 1.35, 48: 1.15, 60: 1.0 }[state.duration];
+        const mileMult = { 10000: 0.97, 12000: 1.0, 15000: 1.05, 20000: 1.12 }[
+          state.mileage
+        ];
+        const prepayMult = 1 - state.prepay * 0.008;
+        const productMult = state.product === "lease" ? 0.86 : 1.0;
+        let price = base * durMult * mileMult * prepayMult * productMult;
+        price = Math.round(price / 1000) * 1000;
+
+        document.getElementById("finalPrice").textContent =
+          price.toLocaleString("ko-KR");
+        const mileLabel = {
+          10000: "1만km",
+          12000: "1.2만km",
+          15000: "1.5만km",
+          20000: "2만km",
+        }[state.mileage];
+        const prodLabel = state.product === "lease" ? "리스" : "장기렌트";
+        document.getElementById("priceNote").textContent =
+          `${carName} · ${state.duration}개월 · 연 ${mileLabel} · ${prodLabel} 기준`;
+      }
+
+      // ---------- load demo data ----------
+      fetch("./data.json")
+        .then((r) => r.json())
+        .then((data) => {
+          document.getElementById("carDesc").textContent =
+            data.estimate.categoryDescriptions[carTagText] ||
+            "고객님의 조건에 맞춘 최적의 견적을 확인해보세요.";
+
+          const fallbackCar = data.cars.find((c) => c.name === carName);
+          const basePrice =
+            urlPrice || (fallbackCar && fallbackCar.price) || 297000;
+
+          TRIMS = data.estimate.trimRatios.map((t) => ({
+            name: t.name,
+            base: Math.round((basePrice * t.ratio) / 1000) * 1000,
+          }));
+
+          renderTrimList();
+          calc();
+        })
+        .catch((err) => console.error("데이터 로드 실패:", err));
+
+      // ---------- modal helpers ----------
+      function openModal(id) {
+        document.getElementById(id).classList.add("show");
+        document.body.style.overflow = "hidden";
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove("show");
+        document.body.style.overflow = "";
+      }
+      document.getElementById("trimScrim").addEventListener("click", (e) => {
+        if (e.target.id === "trimScrim") closeModal("trimScrim");
+      });
+      document.getElementById("quoteScrim").addEventListener("click", (e) => {
+        if (e.target.id === "quoteScrim") closeModal("quoteScrim");
+      });
+
+      [
+        "openQuoteTop",
+        "openQuoteDrawer",
+        "openQuoteMain",
+        "openQuoteSide",
+        "openQuoteTip",
+        "openQuoteBar",
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el)
+          el.addEventListener("click", () => {
+            closeDrawer();
+            resetQuoteModal();
+            openModal("quoteScrim");
+          });
+      });
+
+      function resetQuoteModal() {
+        document.getElementById("quoteStepForm").style.display = "block";
+        document.getElementById("quoteStepConfirm").style.display = "none";
+        document.getElementById("quoteStepSuccess").style.display = "none";
+      }
+      ["quoteClose1", "quoteClose2", "quoteClose3"].forEach((id) => {
+        document
+          .getElementById(id)
+          .addEventListener("click", () => closeModal("quoteScrim"));
+      });
+
+      document
+        .getElementById("quoteToConfirm")
+        .addEventListener("click", () => {
+          const name = document.getElementById("qName").value.trim();
+          const phone = document.getElementById("qPhone").value.trim();
+          if (!name || !phone) {
+            alert("이름과 휴대폰번호를 입력해주세요.");
+            return;
+          }
+          document.getElementById("confirmName").textContent = name;
+          document.getElementById("confirmPhone").textContent = phone;
+          document.getElementById("quoteStepForm").style.display = "none";
+          document.getElementById("quoteStepConfirm").style.display = "block";
+        });
+      document
+        .getElementById("quoteBackToForm")
+        .addEventListener("click", () => {
+          document.getElementById("quoteStepConfirm").style.display = "none";
+          document.getElementById("quoteStepForm").style.display = "block";
+        });
+      document
+        .getElementById("quoteSubmitFinal")
+        .addEventListener("click", () => {
+          document.getElementById("quoteStepConfirm").style.display = "none";
+          document.getElementById("quoteStepSuccess").style.display = "block";
+        });
+
+      document.getElementById("chatFab").addEventListener("click", () => {
+        resetQuoteModal();
+        openModal("quoteScrim");
+      });
+
+      // ---------- reveal ----------
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((en) => {
+            if (en.isIntersecting) {
+              en.target.classList.add("in");
+              io.unobserve(en.target);
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+      document.querySelectorAll(".fade-up").forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>
