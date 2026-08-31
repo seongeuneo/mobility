@@ -1,6 +1,6 @@
 {
-  "name": "SH 모빌리티 | 장기렌트 · 리스",
-  "short_name": "SH모빌리티",
+  "name": "유니카플랜 | 장기렌트 · 리스",
+  "short_name": "유니카플랜",
   "description": "장기렌트·리스 15개 캐피탈사 무료 견적 비교",
   "start_url": "./index.html",
   "scope": "./",
